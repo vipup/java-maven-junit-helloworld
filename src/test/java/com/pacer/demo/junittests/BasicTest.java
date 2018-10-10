@@ -25,6 +25,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import cz.tto.te2.common.ILogger;
 import cz.tto.te2.common.IPathResolver;
@@ -49,7 +51,7 @@ import cz.tto.te2jar.services.ServiceProvider;
 //TODO 4 TSYS import cz.tto.te2jar.Executor;
 
 class BasicTest {
-	final String strFile = "test.TE2";
+	
 	LogLevelEnum logLevel = LogLevelEnum.DEBUG;
 	final HashMap<String, String> variables = new HashMap<>();
 	JDBCPreferences jdbcPref = null;
@@ -61,37 +63,7 @@ class BasicTest {
 	@BeforeEach 
 	void init() {
 
-		// set counters implementations
-		Functions.addBuiltIn(new IncrementCounterFunction());
-		Functions.addBuiltIn(new IncrementCounterByValueFunction());
-		Functions.addBuiltIn(new GetCounterFunction());
-		Functions.addBuiltIn(new CreateCounterFunction());
-		Functions.addBuiltIn(new CreateCounterWithParamsFunction());
-		Functions.addBuiltIn(new ResetCounterFunction());
-
-		BasicConfigurator.configure(new NullAppender());
-
-		ICompiledUnit context = null;
-		try {
-			context = cz.tto.te2.compile.Compiler.compile(strFile, null, createPathResolver(), false, false);
-		} catch (final Exception e) {
-			throw new RuntimeException(e);
-		}
-		executable = context.createExecutable();
-
-		// set logger
-		executable.setLogger(createLogger(logLevel));
-		// set external variables
-		setExtarnalVaribles(executable, variables);
-		// set JDBC and counter services provider
-		executable.setServiceProvider(new ServiceProvider(jdbcPref, counterPref));
-
-		// check issues
-		final List<Issue> issues = executable.getIssues();
-		if (issues.size() > 0) {
-			System.out.println("Errors:" + executable.getIssues());
-			return;
-		}
+		
 
  
 		// execution
@@ -108,9 +80,45 @@ class BasicTest {
 
 	}
 
-	@Test
-	void test1() {
+	@ParameterizedTest
+	@ValueSource(strings = { "test", "test2", "extratest" })
+	void testTE2(String te2name) { 
+		
+		// set counters implementations
+		
+				Functions.replaceBuiltIn(new IncrementCounterFunction());
+				Functions.replaceBuiltIn(new IncrementCounterByValueFunction());
+				Functions.replaceBuiltIn(new GetCounterFunction());
+				Functions.replaceBuiltIn(new CreateCounterFunction());
+				Functions.replaceBuiltIn(new CreateCounterWithParamsFunction());
+				Functions.replaceBuiltIn(new ResetCounterFunction());
+
+				BasicConfigurator.configure(new NullAppender());
+
+				ICompiledUnit context = null;
+				try {
+					String strFile = ""+te2name+".TE2";
+					context = cz.tto.te2.compile.Compiler.compile(strFile , null, createPathResolver(), false, false);
+				} catch (final Exception e) {
+					throw new RuntimeException(e);
+				}
+				executable = context.createExecutable();
+
+				// set logger
+				executable.setLogger(createLogger(logLevel));
+				// set external variables
+				setExtarnalVaribles(executable, variables);
+				// set JDBC and counter services provider
+				executable.setServiceProvider(new ServiceProvider(jdbcPref, counterPref));
+
+				// check issues
+				final List<Issue> issues = executable.getIssues();
+				if (issues.size() > 0) {
+					System.out.println("Errors:" + executable.getIssues());
+					return;
+				}		
 		executable.execute();
+		executable.getReturnValue().equals(""+te2name);
 	}
 
 	/**
