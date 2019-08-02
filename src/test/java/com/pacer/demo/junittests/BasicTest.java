@@ -59,11 +59,22 @@ class BasicTest {
 	private IExecutionUnit executable;
 	private long lStartTime;
 	private long lEndTime;
+	
+	@Before
+	@BeforeAll
+	@After
+	void doNothing() { 
+		// do nothing
+	}
+	@Test
+	void emptyTest() {
+		//Test
+		assertTrue(Boolean.TRUE); 
+	}
 
 	@BeforeEach 
 	void init() {
 
-		
 
  
 		// execution

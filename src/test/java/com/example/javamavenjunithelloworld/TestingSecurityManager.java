@@ -29,7 +29,11 @@ public class TestingSecurityManager extends SecurityManager {
      * An exception that stores the exit code for later verification.
      */
     public static class TestExitException extends RuntimeException {
-        private final int status;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 8861734543571035149L;
+		private final int status;
 
         public TestExitException(int status) {
             this.status = status;
